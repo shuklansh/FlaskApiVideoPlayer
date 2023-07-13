@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace 'com.shuklansh.templateapp'
+    namespace 'com.shuklansh.flaskvideoplayertheme'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.shuklansh.templateapp"
+        applicationId "com.shuklansh.flaskvideoplayertheme"
         minSdk 21
         targetSdk 33
         versionCode 1
