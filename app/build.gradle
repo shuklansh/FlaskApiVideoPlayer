@@ -12,14 +12,16 @@ android {
 
     defaultConfig {
         applicationId "com.shuklansh.flaskvideoplayertheme"
-        minSdk 21
+        minSdk 24
         targetSdk 33
         versionCode 1
         versionName "1.0"
 
+        multiDexEnabled true
+
         Properties properties = new Properties()
         properties.load(project.rootProject.file("local.properties").newDataInputStream())
-        buildConfigField "String", "API_KEY", "\"${properties.getProperty("API_KEY")}\""
+        buildConfigField "String", "LINK", "\"${properties.getProperty("LINK")}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -93,5 +95,9 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:$nav_version")
     //fragmenmt-ktx
     //implementation 'androidx.fragment:fragment-ktx:1.5.7'
+
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.7'
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.github.maxrave-dev:kotlin-youtubeExtractor:0.0.4'
 
 }
