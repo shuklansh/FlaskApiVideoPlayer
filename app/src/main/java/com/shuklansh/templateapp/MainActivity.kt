@@ -108,6 +108,8 @@ class MainActivity : ComponentActivity() {
 //                            )
                         ) {
                             listoflinks.indices.forEach{
+                            //LazyColumn{
+                               // items(listoflinks){
 
                                     var ctx = LocalContext.current
                                     val scrst = rememberScrollState()
@@ -124,7 +126,7 @@ class MainActivity : ComponentActivity() {
 
                                     val yt = YTExtractor(con = ctx, CACHING = true, LOGGING = true)
                                     var ytFiles: SparseArray<YtFile>? = null
-                                    var videoMeta: VideoMeta? by remember { mutableStateOf(null) }
+                                    var videoMeta: VideoMeta? by rememberSaveable { mutableStateOf(null) }
 
                                     LaunchedEffect(key1 = true) {
                                         videoId = YtVideoIdExtractor(listoflinks[it], ctx)
@@ -181,8 +183,8 @@ class MainActivity : ComponentActivity() {
 
                                             Box(
                                                 Modifier
-                                                    .fillMaxWidth()
-                                                    .height(800.dp)
+                                                    .fillMaxWidth().fillMaxHeight(2f)
+
                                             ) {
                                                 DisposableEffect(
                                                     AndroidView(
@@ -199,7 +201,7 @@ class MainActivity : ComponentActivity() {
                                                                 exoPlayer.playWhenReady = true
                                                                 useController = false
                                                                 this.resizeMode =
-                                                                    AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT
+                                                                    AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
                                                                 player = exoPlayer
                                                                 layoutParams =
                                                                     FrameLayout.LayoutParams(
@@ -211,7 +213,7 @@ class MainActivity : ComponentActivity() {
                                                         },
                                                         modifier = Modifier.onGloballyPositioned {
                                                             videoBound = it.boundsInWindow().toAndroidRect()
-                                                        }
+                                                        }.fillMaxWidth()
                                                     )
                                                 ) {
                                                     onDispose {
@@ -372,8 +374,9 @@ class MainActivity : ComponentActivity() {
                                     }
 
 
-                                }
+                                //}
                             }
+                        }
                         }
 
 
@@ -387,7 +390,7 @@ class MainActivity : ComponentActivity() {
     private fun updatedParams(): PictureInPictureParams?{
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             PictureInPictureParams.Builder().setSourceRectHint(videoBound).setAspectRatio(
-                Rational(16,9)
+                Rational(48,24)
             ).build()
         }else null
     }
