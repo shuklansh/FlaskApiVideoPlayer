@@ -1,9 +1,13 @@
 package com.shuklansh.templateapp
 
+import android.app.PictureInPictureParams
 import android.content.Context
+import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Rational
 import android.util.SparseArray
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -24,11 +28,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toAndroidRect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +57,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private var videoBound = Rect()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -57,7 +66,9 @@ class MainActivity : ComponentActivity() {
 
                 val vm: AppViewModel by viewModels()
                 val state by vm.listOfVideos.collectAsState()
-                val listoflinks = ArrayList<String>()
+                val listoflinks by rememberSaveable{
+                    mutableStateOf( ArrayList<String>())
+                }
 
                 LaunchedEffect(key1 = state ) {
                     vm.updateVideoList()
@@ -78,7 +89,7 @@ class MainActivity : ComponentActivity() {
 
                     Column(
                         Modifier
-//                            .verticalScroll(rememberScrollState(), enabled = true)
+                            .verticalScroll(rememberScrollState(), enabled = true)
                             .fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
@@ -96,11 +107,10 @@ class MainActivity : ComponentActivity() {
 //                                12.dp
 //                            )
                         ) {
-                            LazyColumn {
-                                items(listoflinks) {
+                            listoflinks.indices.forEach{
 
                                     var ctx = LocalContext.current
-                                    //val scrst = rememberScrollState()
+                                    val scrst = rememberScrollState()
                                     var Col by remember {
                                         mutableStateOf(Color.White)
                                     }
@@ -110,16 +120,14 @@ class MainActivity : ComponentActivity() {
                                         ExoPlayer.Builder(ctx).build()
 
                                     }
-                                    var videoId by remember { mutableStateOf("") }
+                                    var videoId by rememberSaveable { mutableStateOf("") }
 
                                     val yt = YTExtractor(con = ctx, CACHING = true, LOGGING = true)
                                     var ytFiles: SparseArray<YtFile>? = null
                                     var videoMeta: VideoMeta? by remember { mutableStateOf(null) }
 
-                                    LaunchedEffect(key1 = listoflinks) {
-
-
-                                        videoId = YtVideoIdExtractor(it, ctx)
+                                    LaunchedEffect(key1 = true) {
+                                        videoId = YtVideoIdExtractor(listoflinks[it], ctx)
 //                                videoId = YtVideoIdExtractor(link)
                                         Log.d("full", videoId)
                                         yt.extract(videoId)
@@ -188,10 +196,10 @@ class MainActivity : ComponentActivity() {
 
                                                             StyledPlayerView(context).apply {
                                                                 hideController()
-                                                                exoPlayer.playWhenReady = false
-                                                                useController = true
+                                                                exoPlayer.playWhenReady = true
+                                                                useController = false
                                                                 this.resizeMode =
-                                                                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                                                                    AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT
                                                                 player = exoPlayer
                                                                 layoutParams =
                                                                     FrameLayout.LayoutParams(
@@ -200,7 +208,11 @@ class MainActivity : ComponentActivity() {
                                                                     )
                                                             }
 
-                                                        })
+                                                        },
+                                                        modifier = Modifier.onGloballyPositioned {
+                                                            videoBound = it.boundsInWindow().toAndroidRect()
+                                                        }
+                                                    )
                                                 ) {
                                                     onDispose {
                                                         exoPlayer.pause()
@@ -371,8 +383,26 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+    private fun updatedParams(): PictureInPictureParams?{
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            PictureInPictureParams.Builder().setSourceRectHint(videoBound).setAspectRatio(
+                Rational(16,9)
+            ).build()
+        }else null
     }
-}
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        updatedParams()?.let { params->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                enterPictureInPictureMode(params)
+            }
+
+        }
+    }
+    }
+
 
 
 fun YtVideoIdExtractor(link: String, ctx : Context): String {
