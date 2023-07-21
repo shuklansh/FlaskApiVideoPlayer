@@ -1,13 +1,15 @@
 
 # Reels-Clone
 
-Reels clone application with video player. YouTube video links, from python Flask API. 
+Reels clone application with video player & picture-in-picture mode. YouTube video links, from python Flask API. 
 
 
 ## Screenshots
 
 
 ![Screenshot 2023-07-19 135804](https://github.com/shuklansh/Reels-Clone/assets/89148178/4f65a373-0549-4e20-afce-0f96475ed752)
+
+![image](https://github.com/shuklansh/Reels-Clone/assets/89148178/333642c1-2ef3-4b77-9cab-4c617475f42d)
 
 ![Screenshot 2023-07-19 135750](https://github.com/shuklansh/Reels-Clone/assets/89148178/b4951314-8661-4015-907e-e2f11fd9e70a)
 
